@@ -33,21 +33,23 @@ class CurlDispatcher implements DispatcherInterface
     public function __construct(array $config = [])
     {
         $this->config = $config + $this->config;
-
-        if (!isset($this->config[CURLOPT_COOKIEJAR])) {
-            $cookies = str_replace('//', '/', sys_get_temp_dir().'/embed-cookies.'.uniqid());
-
-            if (is_file($cookies)) {
-                if (!is_writable($cookies)) {
-                    throw new EmbedException(sprintf('The temporary cookies file "%s" is not writable', $cookies));
-                }
-            } elseif (!is_writable(dirname($cookies))) {
-                throw new EmbedException(sprintf('The temporary folder "%s" is not writable', dirname($cookies)));
+    
+        //WORKAROUND : Because leading to a unusable situation when dealing with 
+        //certain professional hostings restricting subfolder creation on /tmp/ folder 
+        
+        $cookies = sys_get_temp_dir();
+            //str_replace('//', '/', sys_get_temp_dir().'/embed-cookies.'.uniqid());
+/*
+        if (is_file($cookies)) {
+            if (!is_writable($cookies)) {
+                throw new EmbedException(sprintf('The temporary cookies file "%s" is not writable', $cookies));
             }
-
-            $this->config[CURLOPT_COOKIEJAR] = $cookies;
-            $this->config[CURLOPT_COOKIEFILE] = $cookies;
+        } elseif (!is_writable(dirname($cookies))) {
+            throw new EmbedException(sprintf('The temporary folder "%s" is not writable', dirname($cookies)));
         }
+*/
+        $this->config[CURLOPT_COOKIEJAR] = $cookies;
+        $this->config[CURLOPT_COOKIEFILE] = $cookies;
     }
 
     /**
@@ -105,8 +107,7 @@ class CurlDispatcher implements DispatcherInterface
             $result['statusCode'],
             $result['contentType'],
             $result['content'],
-            $result['headers'],
-            $result['info']
+            $result['headers']
         );
     }
 
@@ -199,8 +200,7 @@ class CurlDispatcher implements DispatcherInterface
                         $result['statusCode'],
                         $result['contentType'],
                         [$result['data']->width, $result['data']->height],
-                        $result['headers'],
-                        $result['info']
+                        $result['headers']
                     );
                 }
             }
